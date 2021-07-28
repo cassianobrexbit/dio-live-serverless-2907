@@ -10,109 +10,127 @@ authorName: 'Serverless, inc.'
 authorAvatar: 'https://avatars1.githubusercontent.com/u/13742415?s=200&v=4'
 -->
 
-# Serverless Framework Node REST API on AWS
+# API Node.js com Serverless Framework em ambiente AWS
 
-This template demonstrates how to make a simple REST API with Node.js running on AWS Lambda and API Gateway using the traditional Serverless Framework.
+Este repositório contém o código fonte do Live Coding da DIO no dia 29/07/2021. Neste projeto vamos criar uma infraestrutra em nuvem AWS com API Gateway, DynamoDB, AWS Lambda e AWS CloudFormation utilizando o framework Serverless para o desenvolvimento baseada em Infraestrutura as a Code.
 
-This template does not include any kind of persistence (database). For a more advanced examples check out the [examples repo](https://github.com/serverless/examples/) which includes Typescript, Mongo, DynamoDB and other examples.
+## Etapas
 
-## Usage
+Pré requisitos: 
+ - possuir uma conta na AWS e instalar Node.js na máquina.
+ - Instalar o AWS CLI: https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html
 
-### Deployment
+### Setup Inicial
 
-This example is made to work with the Serverless Framework dashboard which includes advanced features like CI/CD, monitoring, metrics, etc.
+#### Credenciais AWS
 
+- Criar usuário: AWS Management Console -> IAM Dashboard -> Create New User -> <nome do usuário> -> Permissions "Administrator Access" -> Programmatic Access -> Dowload Keys
+- No terminal: ```$ aws configure``` -> colar as credenciais geradas anteriormente
+- 
+#### Configurar o framework Serverless
+```$ npm i -g serverless```
+
+### Desenvolvimento do projeto
+ 
 ```
-$ serverless login
-$ serverless deploy
+$ serverless
+Login/Register: No
+Update: No
+Type: Node.js REST API
+Name: dio-live
 ```
-
-To deploy without the dashboard you will need to remove `org` and `app` fields from the `serverless.yml`, and you won’t have to run `sls login` before deploying.
-
-After running deploy, you should see output similar to:
-
-```bash
-Serverless: Packaging service...
-Serverless: Excluding development dependencies...
-Serverless: Creating Stack...
-Serverless: Checking Stack create progress...
-........
-Serverless: Stack create finished...
-Serverless: Uploading CloudFormation file to S3...
-Serverless: Uploading artifacts...
-Serverless: Uploading service aws-node-rest-api.zip file to S3 (711.23 KB)...
-Serverless: Validating template...
-Serverless: Updating Stack...
-Serverless: Checking Stack update progress...
-.................................
-Serverless: Stack update finished...
-Service Information
-service: aws-node-rest-api
-stage: dev
-region: us-east-1
-stack: aws-node-rest-api-dev
-resources: 12
-api keys:
-  None
-endpoints:
-  ANY - https://xxxxxxx.execute-api.us-east-1.amazonaws.com/dev/
-functions:
-  api: aws-node-rest-api-dev-hello
-layers:
-  None
 ```
+$ cd dio live
+$ code .
+``` 
+- No arquivo ```serverless.yml``` adicionar a região ```region:us-east-1```
+- Salvar e realizar o deploy ```$ serverless deploy -v```
 
-_Note_: In current form, after deployment, your API is public and can be invoked by anyone. For production deployments, you might want to configure an authorizer. For details on how to do that, refer to [http event docs](https://www.serverless.com/framework/docs/providers/aws/events/apigateway/).
+#### Estruturar o código
 
-### Invocation
-
-After successful deployment, you can call the created application via HTTP:
-
-```bash
-curl https://xxxxxxx.execute-api.us-east-1.amazonaws.com/dev/
+- Criar o diretório "src" e mover o arquivo "handler.js" para dentro dele
+- Renomear o arquivo "handler.js" para "hello.js"
+- Atualizar o código 
 ```
-
-Which should result in response similar to the following (removed `input` content for brevity):
-
-```json
-{
-  "message": "Go Serverless v2.0! Your function executed successfully!",
-  "input": {
-    ...
-  }
+const hello = async (event) => {
+/////
+module.exports = {
+    handler:hello
 }
 ```
-
-### Local development
-
-You can invoke your function locally by using the following command:
-
-```bash
-serverless invoke local --function hello
+- Atualizar o arquivo "serverless.yml "
 ```
-
-Which should result in response similar to the following:
-
+handler: src/hello.handler
 ```
-{
-  "statusCode": 200,
-  "body": "{\n  \"message\": \"Go Serverless v2.0! Your function executed successfully!\",\n  \"input\": \"\"\n}"
-}
+```$ serverless deploy -v ```
+
+#### DynamoDB
+Atualizar o arquivo serverless.yml
 ```
-
-
-Alternatively, it is also possible to emulate API Gateway and Lambda locally by using `serverless-offline` plugin. In order to do that, execute the following command:
-
-```bash
-serverless plugin install -n serverless-offline
+resources:
+  Resources:
+    ItemTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+          TableName: ItemTable
+          BillingMode: PAY_PER_REQUEST
+          AttributeDefinitions:
+            - AttributeName: id
+              AttributeType: S
+          KeySchema:
+            - AttributeName: id
+              KeyType: HASH
 ```
+#### Desenvolver funções lambda
 
-It will add the `serverless-offline` plugin to `devDependencies` in `package.json` file as well as will add it to `plugins` in `serverless.yml`.
+	- Pasta /src do repositório
+ 	- Obter arn da tabela no DynamoDB AWS Console -> DynamoDB -> Overview -> Amazon Resource Name (ARN)
+	- Atualizar arquivo serverless.yml
+  ```
+	iam:
+      role:
+          statements:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:GetItem
+                - dynamodb:Scan
+              Resource:
+                - arn:aws:dynamodb:us-east-1:167880115321:table/ItemTable
+  ```
+  - Atualizar lista de funções no arquivo serverless.yml
+  ```
+  functions:
+  hello:
+    handler: src/hello.handler
+    events:
+      - http:
+          path: /
+          method: get
+  insertItem:
+    handler: src/insertItem.handler
+    events:
+      - http:
+          path: /item
+          method: post
+  fetchItems:
+    handler: src/fetchItems.handler
+    events:
+      - http:
+          path: /items
+          method: get
+  fetchItem:
+    handler: src/fetchItem.handler
+    events:
+      - http:
+          path: /items/{id}
+          method: get
+  updateItem:
+    handler: src/updateItem.handler
+    events:
+      - http:
+          path: /items/{id}
+          method: put
+  ```
 
-After installation, you can start local emulation with:
-
-```
-serverless offline
-```
-
-To learn more about the capabilities of `serverless-offline`, please refer to its [GitHub repository](https://github.com/dherault/serverless-offline).
