@@ -99,6 +99,12 @@ resources:
               Resource:
                 - arn:aws:dynamodb:us-east-1:167880115321:table/ItemTable
   ```
+  
+   - Instalar dependências
+
+   ```npm init```
+   ```npm i uuid aws-sdk```
+   
   - Atualizar lista de funções no arquivo serverless.yml
   ```
   functions:
@@ -133,4 +139,5 @@ resources:
           path: /items/{id}
           method: put
   ```
+
 
