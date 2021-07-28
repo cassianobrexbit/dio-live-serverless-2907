@@ -40,7 +40,7 @@ Type: Node.js REST API
 Name: dio-live
 ```
 ```
-$ cd dio live
+$ cd dio-live
 $ code .
 ``` 
 - No arquivo ```serverless.yml``` adicionar a região ```region:us-east-1```
