@@ -43,7 +43,7 @@ Name: dio-live
 $ cd dio-live
 $ code .
 ``` 
-- No arquivo ```serverless.yml``` adicionar a região ```region:us-east-1```
+- No arquivo ```serverless.yml``` adicionar a região ```region:us-east-1``` dentro do escopo de ```provider:```
 - Salvar e realizar o deploy ```$ serverless deploy -v```
 
 #### Estruturar o código
