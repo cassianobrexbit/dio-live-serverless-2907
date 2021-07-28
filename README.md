@@ -85,7 +85,7 @@ resources:
 
 	- Pasta /src do repositório
  	- Obter arn da tabela no DynamoDB AWS Console -> DynamoDB -> Overview -> Amazon Resource Name (ARN)
-	- Atualizar arquivo serverless.yml com o código a seguir, abaixo do ```region: ```
+	- Atualizar arquivo serverless.yml com o código a seguir, abaixo do ```region:```
   ```
 	iam:
       role:
